@@ -39,7 +39,7 @@ func (b *consulBuilder) Build(target resolver.Target, cc resolver.ClientConn, op
 		ctx: ctx,
 		cancel: cancel,
 		wg: sync.WaitGroup{},
-		resolveNow: make(chan struct{}),
+		resolveNow: make(chan struct{},1),
 		svcName: svcName,
 		clientCfg: consulCfg,
 		cc: cc,
@@ -70,12 +70,12 @@ func (r consulResolver) Watcher()  {
 		grpclog.Error(err)
 	}
 	tags:=make([]string,0)
-	passing:=true
+	var passing bool
 	opts:=new(consulapi.QueryOptions)
 	var interval time.Duration
 	if r.opts!=nil {
 		tags=r.opts["tag"]
-		passing=r.opts.Get("passing")=="true"
+    	passing=r.opts.Get("passing")=="true" ||r.opts.Get("passing")==""
 		opts.Namespace=r.opts.Get("ns")
 		opts.Datacenter=r.opts.Get("dc")
 		interval,err=time.ParseDuration(r.opts.Get("interval"))
@@ -86,12 +86,18 @@ func (r consulResolver) Watcher()  {
 	for  {
 		svcInfo,_,err:=client.Health().ServiceMultipleTags(r.svcName,tags,passing,opts)
 		if err!=nil { r.cc.ReportError(err) ;return }
+		if len(svcInfo)!=0 {
 		state:=resolver.State{}
 			for _, info := range svcInfo {
 				state.Addresses=append(state.Addresses,resolver.Address{Addr: fmt.Sprint(info.Service.Address,":",info.Service.Port)})
 			}
 
 		r.cc.UpdateState(state)
+                } else {
+			grpclog.Info("Resolver returns 0 available host , sleep 10 seconds for next try.")
+                time.Sleep(10*time.Second)
+                r.resolveNow<- struct{}{}
+                }
 		select {
 		case <-r.ctx.Done():
 			return
