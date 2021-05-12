@@ -1,0 +1,62 @@
+services:
+    consul:
+        image: "consul:latest"
+        environment:
+            - CONSUL_BIND_INTERFACE=eth0
+        entrypoint: ["consul","agent","-server","-bootstrap-expect=1","-client","0.0.0.0","-data-dir","/consul-dir","-ui"]
+        ports:
+            - "8500:8500"
+    restapi1:
+        image: "restapi:latest"
+        build:
+            context: .
+            dockerfile: "Dockerfile"
+            target: "restapi"
+        environment:
+            - PORT=8888
+            - CONSUL_HTTP_ADDR=consul:8500
+            - SERVICE_NAME=restapi1
+        ports:
+            - "2000:8888"
+        depends_on:
+            - consul
+    restapi2:
+        image: "restapi:latest"
+        build:
+            context: .
+            dockerfile: "Dockerfile"
+            target: "restapi"
+        environment:
+            - PORT=8888
+            - CONSUL_HTTP_ADDR=consul:8500
+            - SERVICE_NAME=restapi2
+        ports:
+            - "2001:8888"
+        depends_on:
+            - consul
+    restapi3:
+        image: "restapi:latest"
+        build:
+            context: .
+            dockerfile: "Dockerfile"
+            target: "restapi"
+        environment:
+            - PORT=8888
+            - CONSUL_HTTP_ADDR=consul:8500
+            - SERVICE_NAME=restapi3
+        ports:
+            - "2002:8888"
+        depends_on:
+            - consul    
+    client:
+        image: "client:latest"
+        build:
+            context: .
+            dockerfile: "Dockerfile"
+            target: "client"
+        environment:
+            - CONSUL_HTTP_ADDR=consul:8500
+        depends_on:
+            - consul
+            - restapi
+    

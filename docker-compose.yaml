@@ -1,0 +1,70 @@
+services:
+    consul:
+        image: "consul:latest"
+        environment:
+            - CONSUL_BIND_INTERFACE=eth0
+        entrypoint: ["consul","agent","-server","-bootstrap-expect=1","-client","0.0.0.0","-data-dir","/consul-dir","-ui"]
+        ports:
+            - "8500:8500"
+    grpc_kv1:
+        image: "kv_server:latest"
+        build:
+            context: .
+            dockerfile: "Dockerfile"
+            target: "kv_server"
+        environment:
+            - PORT=8888
+            - CONSUL_HTTP_ADDR=consul:8500
+            - SERVICE_NAME=grpc_kv
+            - SERVICE_ID=grpc_kv1
+            - TAG=a
+        ports:
+            - "2000:8888"
+        depends_on:
+            - consul
+    grpc_kv2:
+        image: "kv_server:latest"
+        build:
+            context: .
+            dockerfile: "Dockerfile"
+            target: "kv_server"
+        environment:
+            - PORT=8888
+            - CONSUL_HTTP_ADDR=consul:8500
+            - SERVICE_NAME=grpc_kv
+            - SERVICE_ID=grpc_kv2
+            - TAG=b
+        ports:
+            - "2001:8888"
+        depends_on:
+            - consul
+    grpc_kv3:
+        image: "kv_server:latest"
+        build:
+            context: .
+            dockerfile: "Dockerfile"
+            target: "kv_server"
+        environment:
+            - PORT=8888
+            - CONSUL_HTTP_ADDR=consul:8500
+            - SERVICE_NAME=grpc_kv
+            - SERVICE_ID=grpc_kv3
+            - TAG=c
+        ports:
+            - "2002:8888"
+        depends_on:
+            - consul    
+    kv_client:
+        image: "kv_client:latest"
+        build:
+            context: .
+            dockerfile: "Dockerfile"
+            target: "kv_client"
+        environment:
+            - TARGET=consul://consul:8500/grpc_kv?tag=c
+        depends_on:
+            - consul
+            - grpc_kv1
+            - grpc_kv2
+            - grpc_kv3
+    

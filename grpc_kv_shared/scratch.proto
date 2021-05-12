@@ -1,0 +1,24 @@
+syntax = "proto3";
+package grpc_kv_shared;
+option go_package = "./";
+
+import "google/protobuf/wrappers.proto";
+
+service kvserver{
+  rpc getkv(key) returns(value);
+  rpc putkv(kvpair) returns(google.protobuf.BoolValue);
+  rpc delkv(key) returns(google.protobuf.BoolValue);
+}
+
+message key {
+  string key =1;
+}
+
+message value {
+  string value =1;
+}
+message kvpair{
+  string key=1;
+  string value=2;
+}
+
