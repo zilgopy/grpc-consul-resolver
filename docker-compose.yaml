@@ -6,65 +6,65 @@ services:
         entrypoint: ["consul","agent","-server","-bootstrap-expect=1","-client","0.0.0.0","-data-dir","/consul-dir","-ui"]
         ports:
             - "8500:8500"
-    grpc_kv1:
-        image: "kv_server:latest"
+    grpc-kv1:
+        image: "kv-server:latest"
         build:
             context: .
             dockerfile: "Dockerfile"
-            target: "kv_server"
+            target: "kv-server"
         environment:
             - PORT=8888
             - CONSUL_HTTP_ADDR=consul:8500
-            - SERVICE_NAME=grpc_kv
-            - SERVICE_ID=grpc_kv1
+            - SERVICE_NAME=grpc-kv
+            - SERVICE_ID=grpc-kv1
             - TAG=a
         ports:
             - "2000:8888"
         depends_on:
             - consul
-    grpc_kv2:
-        image: "kv_server:latest"
+    grpc-kv2:
+        image: "kv-server:latest"
         build:
             context: .
             dockerfile: "Dockerfile"
-            target: "kv_server"
+            target: "kv-server"
         environment:
             - PORT=8888
             - CONSUL_HTTP_ADDR=consul:8500
-            - SERVICE_NAME=grpc_kv
-            - SERVICE_ID=grpc_kv2
+            - SERVICE_NAME=grpc-kv
+            - SERVICE_ID=grpc-kv2
             - TAG=b
         ports:
             - "2001:8888"
         depends_on:
             - consul
-    grpc_kv3:
-        image: "kv_server:latest"
+    grpc-kv3:
+        image: "kv-server:latest"
         build:
             context: .
             dockerfile: "Dockerfile"
-            target: "kv_server"
+            target: "kv-server"
         environment:
             - PORT=8888
             - CONSUL_HTTP_ADDR=consul:8500
-            - SERVICE_NAME=grpc_kv
-            - SERVICE_ID=grpc_kv3
+            - SERVICE_NAME=grpc-kv
+            - SERVICE_ID=grpc-kv3
             - TAG=c
         ports:
             - "2002:8888"
         depends_on:
             - consul    
-    kv_client:
-        image: "kv_client:latest"
+    kv-client:
+        image: "kv-client:latest"
         build:
             context: .
             dockerfile: "Dockerfile"
-            target: "kv_client"
+            target: "kv-client"
         environment:
-            - TARGET=consul://consul:8500/grpc_kv?tag=c
+            - TARGET=consul://consul:8500/grpc-kv?tag=c
         depends_on:
             - consul
-            - grpc_kv1
-            - grpc_kv2
-            - grpc_kv3
+            - grpc-kv1
+            - grpc-kv2
+            - grpc-kv3
     
