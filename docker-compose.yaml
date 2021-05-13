@@ -61,7 +61,7 @@ services:
             dockerfile: "Dockerfile"
             target: "kv-client"
         environment:
-            - TARGET=consul://consul:8500/grpc-kv?tag=c
+            - TARGET=consul://consul:8500/grpc-kv?interval=30s
         depends_on:
             - consul
             - grpc-kv1

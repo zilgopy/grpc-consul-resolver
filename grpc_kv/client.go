@@ -5,6 +5,7 @@ import (
 	"context"
 	"fmt"
 	"google.golang.org/grpc"
+	"google.golang.org/grpc/balancer/roundrobin"
 	pb "grpc_kv/grpc_kv_shared"
 	"log"
 	"os"
@@ -12,7 +13,7 @@ import (
 )
 
 func main() {
-	conn,err:=grpc.Dial(os.Getenv("TARGET"),grpc.WithInsecure())
+	conn,err:=grpc.Dial(os.Getenv("TARGET"),grpc.WithInsecure(),grpc.WithBlock(),grpc.WithDefaultServiceConfig(fmt.Sprintf(`{"LoadBalancingPolicy": "%s"}`, roundrobin.Name)))
 	if err!=nil {
 		log.Fatalln(err)
 	}
@@ -22,6 +23,7 @@ func main() {
 	for true {
 		v,err:=client.Getkv(context.Background(),&pb.Key{Key: "server"})
 		fmt.Println(v,err)
+
 		time.Sleep(time.Second)
 	}
 }
